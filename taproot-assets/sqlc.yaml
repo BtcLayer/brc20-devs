@@ -1,0 +1,10 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "tapdb/sqlc/migrations"
+    queries: "tapdb/sqlc/queries"
+    gen:
+      go:
+        out: tapdb/sqlc
+        package: sqlc
+        emit_interface: true

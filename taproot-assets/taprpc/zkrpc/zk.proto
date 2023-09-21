@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+import "taprootassets.proto";
+
+package mintrpc;
+
+option go_package = "github.com/lightninglabs/taproot-assets/taprpc/mintrpc";
+
+service ZK {
+    /* tapcli: `zk create`
+    */
+    rpc CreateProof (CreateProofRequest) returns (CreateProofResponse);
+
+    /* tapcli: `zk create finalize`
+    FinalizeBatch will attempt to finalize the current pending batch.
+    */
+    rpc FinalizeBatch (FinalizeBatchRequest) returns (FinalizeBatchResponse);
+
+    /* tapcli: `zk create cancel`
+    CancelBatch will attempt to cancel the current pending batch.
+    */
+    rpc CancelBatch (CancelBatchRequest) returns (CancelBatchResponse);
+
+    /* tapcli: `zk create batches`
+    ListBatches lists the set of batches submitted to the daemon, including
+    pending and cancelled batches.
+    */
+    rpc ListBatches (ListBatchRequest) returns (ListBatchResponse);
+}
+
+message ZkProof {
+
+    string proof = 1;
+
+    string time = 2;
+
+}
+
+message CreateProofRequest {
+    /*
+    The zk proof to be created.
+    */
+    ZkProof zkproof = 1;
+
+    /*
+    If true, then the zk proofs currently in the batch won't be returned in the
+    response. This is mainly to avoid a lot of data being transmitted and
+    possibly printed on the command line in the case of a very large batch.
+    */
+    bool short_response = 2;
+}
+
+message CreateProofResponse {
+    // The pending batch the proof was added to.
+    ZKProofBatch pending_batch = 1;
+}
+
+message ZKProofBatch {
+    /*
+    A public key serialized in compressed format that can be used to uniquely
+    identify a pending minting batch. Responses that share the same key will be
+    batched into the same minting transaction.
+    */
+    bytes batch_key = 1;
+
+    // The assets that are part of the batch.
+    repeated ZkProof zkproof = 2;
+
+    // The state of the batch.
+    BatchState state = 3;
+}
+
+enum BatchState {
+    BATCH_STATE_UNKNOWN = 0;
+    BATCH_STATE_PEDNING = 1;
+    BATCH_STATE_FROZEN = 2;
+    BATCH_STATE_COMMITTED = 3;
+    BATCH_STATE_BROADCAST = 4;
+    BATCH_STATE_CONFIRMED = 5;
+    BATCH_STATE_FINALIZED = 6;
+    BATCH_STATE_SEEDLING_CANCELLED = 7;
+    BATCH_STATE_SPROUT_CANCELLED = 8;
+}
+
+message FinalizeBatchRequest {
+    /*
+    If true, then the zk proof currently in the batch won't be returned in the
+    response. This is mainly to avoid a lot of data being transmitted and
+    possibly printed on the command line in the case of a very large batch.
+    */
+    bool short_response = 1;
+}
+
+message FinalizeBatchResponse {
+    // The finalized batch.
+    ZKProofBatch batch = 1;
+}
+
+message CancelBatchRequest {
+}
+
+message CancelBatchResponse {
+    // The internal public key of the batch.
+    bytes batch_key = 1;
+}
+
+message ListBatchRequest {
+    // The optional batch key of the batch to list.
+    oneof filter {
+        // The optional batch key of the batch to list, specified as raw bytes
+        // (gRPC only).
+        bytes batch_key = 1;
+
+        // The optional batch key of the batch to list, specified as a hex
+        // encoded string (use this for REST).
+        string batch_key_str = 2;
+    }
+}
+
+message ListBatchResponse {
+    repeated ZKProofBatch batches = 1;
+}
