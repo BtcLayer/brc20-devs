@@ -1,0 +1,302 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "zkrpc/zk.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ZK"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/taproot-assets/zk/create": {
+      "post": {
+        "summary": "tapcli: `zk create`",
+        "operationId": "ZK_CreateProof",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/zkrpcCreateProofResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/zkrpcCreateProofRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ZK"
+        ]
+      }
+    },
+    "/v1/taproot-assets/zk/create/batches/{batch_key}": {
+      "get": {
+        "summary": "tapcli: `zk create batches`\nListBatches lists the set of batches submitted to the daemon, including\npending and cancelled batches.",
+        "operationId": "ZK_ListBatches",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/zkrpcListBatchResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "batch_key",
+            "description": "The optional batch key of the batch to list, specified as raw bytes\n(gRPC only).",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "batch_key_str",
+            "description": "The optional batch key of the batch to list, specified as a hex\nencoded string (use this for REST).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ZK"
+        ]
+      }
+    },
+    "/v1/taproot-assets/zk/create/cancel": {
+      "post": {
+        "summary": "tapcli: `zk create cancel`\nCancelBatch will attempt to cancel the current pending batch.",
+        "operationId": "ZK_CancelBatch",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/zkrpcCancelBatchResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/zkrpcCancelBatchRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ZK"
+        ]
+      }
+    },
+    "/v1/taproot-assets/zk/create/finalize": {
+      "post": {
+        "summary": "tapcli: `zk create finalize`\nFinalizeBatch will attempt to finalize the current pending batch.",
+        "operationId": "ZK_FinalizeBatch",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/zkrpcFinalizeBatchResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/zkrpcFinalizeBatchRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ZK"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "zkrpcBatchState": {
+      "type": "string",
+      "enum": [
+        "BATCH_STATE_UNKNOWN",
+        "BATCH_STATE_PEDNING",
+        "BATCH_STATE_FROZEN",
+        "BATCH_STATE_COMMITTED",
+        "BATCH_STATE_BROADCAST",
+        "BATCH_STATE_CONFIRMED",
+        "BATCH_STATE_FINALIZED",
+        "BATCH_STATE_SEEDLING_CANCELLED",
+        "BATCH_STATE_SPROUT_CANCELLED"
+      ],
+      "default": "BATCH_STATE_UNKNOWN"
+    },
+    "zkrpcCancelBatchRequest": {
+      "type": "object"
+    },
+    "zkrpcCancelBatchResponse": {
+      "type": "object",
+      "properties": {
+        "batch_key": {
+          "type": "string",
+          "format": "byte",
+          "description": "The internal public key of the batch."
+        }
+      }
+    },
+    "zkrpcCreateProofRequest": {
+      "type": "object",
+      "properties": {
+        "zkproof": {
+          "$ref": "#/definitions/zkrpcZkProof",
+          "description": "The zk proof to be created."
+        },
+        "short_response": {
+          "type": "boolean",
+          "description": "If true, then the zk proofs currently in the batch won't be returned in the\nresponse. This is mainly to avoid a lot of data being transmitted and\npossibly printed on the command line in the case of a very large batch."
+        }
+      }
+    },
+    "zkrpcCreateProofResponse": {
+      "type": "object",
+      "properties": {
+        "pending_batch": {
+          "$ref": "#/definitions/zkrpcZKProofBatch",
+          "description": "The pending batch the proof was added to."
+        }
+      }
+    },
+    "zkrpcFinalizeBatchRequest": {
+      "type": "object",
+      "properties": {
+        "short_response": {
+          "type": "boolean",
+          "description": "If true, then the zk proof currently in the batch won't be returned in the\nresponse. This is mainly to avoid a lot of data being transmitted and\npossibly printed on the command line in the case of a very large batch."
+        }
+      }
+    },
+    "zkrpcFinalizeBatchResponse": {
+      "type": "object",
+      "properties": {
+        "batch": {
+          "$ref": "#/definitions/zkrpcZKProofBatch",
+          "description": "The finalized batch."
+        }
+      }
+    },
+    "zkrpcListBatchResponse": {
+      "type": "object",
+      "properties": {
+        "batches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/zkrpcZKProofBatch"
+          }
+        }
+      }
+    },
+    "zkrpcZKProofBatch": {
+      "type": "object",
+      "properties": {
+        "batch_key": {
+          "type": "string",
+          "format": "byte",
+          "description": "A public key serialized in compressed format that can be used to uniquely\nidentify a pending minting batch. Responses that share the same key will be\nbatched into the same minting transaction."
+        },
+        "zkproof": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/zkrpcZkProof"
+          },
+          "description": "The assets that are part of the batch."
+        },
+        "state": {
+          "$ref": "#/definitions/zkrpcBatchState",
+          "description": "The state of the batch."
+        }
+      }
+    },
+    "zkrpcZkProof": {
+      "type": "object",
+      "properties": {
+        "proof": {
+          "type": "string"
+        },
+        "time": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

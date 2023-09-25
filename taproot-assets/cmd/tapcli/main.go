@@ -19,6 +19,7 @@ import (
 	"github.com/lightninglabs/taproot-assets/taprpc"
 	wrpc "github.com/lightninglabs/taproot-assets/taprpc/assetwalletrpc"
 	"github.com/lightninglabs/taproot-assets/taprpc/mintrpc"
+	"github.com/lightninglabs/taproot-assets/taprpc/zkrpc"
 	"github.com/lightningnetwork/lnd/lncfg"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/lightningnetwork/lnd/macaroons"
@@ -77,6 +78,16 @@ func getMintClient(ctx *cli.Context) (mintrpc.MintClient, func()) {
 	}
 
 	return mintrpc.NewMintClient(conn), cleanUp
+}
+
+func getZKClient(ctx *cli.Context) (zkrpc.ZKClient, func()){
+	conn := getClientConn(ctx, false)
+
+	cleanUp := func() {
+		conn.Close()
+	}
+
+	return zkrpc.NewZKClient(conn), cleanUp
 }
 
 func getWalletClient(ctx *cli.Context) (wrpc.AssetWalletClient, func()) {

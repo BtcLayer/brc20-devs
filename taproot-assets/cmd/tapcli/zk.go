@@ -3,11 +3,8 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	"os"
 
-	"github.com/lightninglabs/taproot-assets/tapcfg"
-	"github.com/lightninglabs/taproot-assets/taprpc"
-	"github.com/lightninglabs/taproot-assets/taprpc/mintrpc"
+	"github.com/lightninglabs/taproot-assets/taprpc/zkrpc"
 	"github.com/urfave/cli"
 )
 
@@ -31,79 +28,34 @@ var zkCommands = []cli.Command{
 }
 
 var (
-	assetTypeName         = "type"
-	assetTagName          = "name"
-	assetSupplyName       = "supply"
-	assetMetaBytesName    = "meta_bytes"
-	assetMetaFilePathName = "meta_file_path"
-	assetMetaTypeName     = "meta_type"
-	assetEmissionName     = "enable_emission"
-	assetShowWitnessName  = "show_witness"
-	assetShowSpentName    = "show_spent"
-	assetGroupKeyName     = "group_key"
-	assetGroupAnchorName  = "group_anchor"
-	batchKeyName          = "batch_key"
-	groupByGroupName      = "by_group"
-	assetIDName           = "asset_id"
-	shortResponseName     = "short"
+	zkProof             = "prrof"
+	zkProofTime         = "time"
+	zkshortResponseName = "short"
 )
 
 var createZkProofCommand = cli.Command{
-	Name:        "mint",
-	ShortName:   "m",
-	Usage:       "mint a new asset",
-	Description: "Attempt to mint a new asset with the specified parameters",
+	Name:        "createproof",
+	ShortName:   "c",
+	Usage:       "create a new proof",
+	Description: "Attempt to create a new proof with the specified parameters",
 	Flags: []cli.Flag{
 		cli.StringFlag{
-			Name: assetTypeName,
-			Usage: "the type of asset, must either be: normal, " +
-				"or collectible",
+			Name:  zkProof,
+			Usage: "the dummy proof",
 		},
 		cli.StringFlag{
-			Name:  assetTagName,
-			Usage: "the name/tag of the asset",
-		},
-		cli.Uint64Flag{
-			Name:  assetSupplyName,
-			Usage: "the target supply of the minted asset",
-		},
-		cli.StringFlag{
-			Name:  assetMetaBytesName,
-			Usage: "the raw metadata associated with the asset",
-		},
-		cli.StringFlag{
-			Name: assetMetaFilePathName,
-			Usage: "a path to a file on disk that should be read " +
-				"and used as the asset meta",
-		},
-		cli.IntFlag{
-			Name:  assetMetaTypeName,
-			Usage: "the type of the meta data for the asset",
+			Name:  zkProofTime,
+			Usage: "the time proof is created",
 		},
 		cli.BoolFlag{
-			Name: assetEmissionName,
-			Usage: "if true, then the asset supports on going " +
-				"emission",
-		},
-		cli.StringFlag{
-			Name: assetGroupKeyName,
-			Usage: "the specific group key to use to mint the " +
-				"asset",
-		},
-		cli.StringFlag{
-			Name: assetGroupAnchorName,
-			Usage: "the other asset in this batch that the new " +
-				"asset be grouped with",
-		},
-		cli.BoolFlag{
-			Name: shortResponseName,
+			Name: zkshortResponseName,
 			Usage: "if true, then the current assets within the " +
 				"batch will not be returned in the response " +
 				"in order to avoid printing a large amount " +
 				"of data in case of large batches",
 		},
 	},
-	Action: mintAsset,
+	Action: createProof,
 	Subcommands: []cli.Command{
 		listBatchesCommand,
 		finalizeBatchCommand,
@@ -111,90 +63,84 @@ var createZkProofCommand = cli.Command{
 	},
 }
 
-func parseAssetType(ctx *cli.Context) taprpc.AssetType {
-	assetType := taprpc.AssetType_NORMAL
-	if ctx.String(assetTypeName) == "collectible" {
-		assetType = taprpc.AssetType_COLLECTIBLE
-	}
+// func parseAssetType(ctx *cli.Context) taprpc.AssetType {
+// 	assetType := taprpc.AssetType_NORMAL
+// 	if ctx.String(assetTypeName) == "collectible" {
+// 		assetType = taprpc.AssetType_COLLECTIBLE
+// 	}
 
-	return assetType
-}
+// 	return assetType
+// }
 
-func mintAsset(ctx *cli.Context) error {
-	switch {
-	case ctx.String(assetTagName) == "":
-		fallthrough
-	case ctx.Int64(assetSupplyName) == 0:
-		return cli.ShowSubcommandHelp(ctx)
-	}
+func createProof(ctx *cli.Context) error {
+	// switch {
+	// case ctx.String(assetTagName) == "":
+	// 	fallthrough
+	// case ctx.Int64(assetSupplyName) == 0:
+	// 	return cli.ShowSubcommandHelp(ctx)
+	// }
 
-	var (
-		groupKey    []byte
-		err         error
-		groupKeyStr = ctx.String(assetGroupKeyName)
-	)
+	// var (
+	// 	groupKey    []byte
+	// 	err         error
+	// 	groupKeyStr = ctx.String(assetGroupKeyName)
+	// )
 
-	if len(groupKeyStr) != 0 {
-		groupKey, err = hex.DecodeString(groupKeyStr)
-		if err != nil {
-			return fmt.Errorf("invalid group key")
-		}
-	}
+	// if len(groupKeyStr) != 0 {
+	// 	groupKey, err = hex.DecodeString(groupKeyStr)
+	// 	if err != nil {
+	// 		return fmt.Errorf("invalid group key")
+	// 	}
+	// }
 
 	// Both the meta bytes and the meta path can be set.
-	var assetMeta *taprpc.AssetMeta
-	switch {
-	case ctx.String(assetMetaBytesName) != "" &&
-		ctx.String(assetMetaFilePathName) != "":
-		return fmt.Errorf("meta bytes or meta file path cannot " +
-			"be both set")
+	// var assetMeta *taprpc.AssetMeta
+	// switch {
+	// case ctx.String(assetMetaBytesName) != "" &&
+	// 	ctx.String(assetMetaFilePathName) != "":
+	// 	return fmt.Errorf("meta bytes or meta file path cannot " +
+	// 		"be both set")
 
-	case ctx.String(assetMetaBytesName) != "":
-		assetMeta = &taprpc.AssetMeta{
-			Data: []byte(ctx.String(assetMetaBytesName)),
-			Type: taprpc.AssetMetaType(ctx.Int(assetMetaTypeName)),
-		}
+	// case ctx.String(assetMetaBytesName) != "":
+	// 	assetMeta = &taprpc.AssetMeta{
+	// 		Data: []byte(ctx.String(assetMetaBytesName)),
+	// 		Type: taprpc.AssetMetaType(ctx.Int(assetMetaTypeName)),
+	// 	}
 
-	case ctx.String(assetMetaFilePathName) != "":
-		metaPath := tapcfg.CleanAndExpandPath(
-			ctx.String(assetMetaFilePathName),
-		)
-		metaFileBytes, err := os.ReadFile(metaPath)
-		if err != nil {
-			return fmt.Errorf("unable to read meta file: %w", err)
-		}
+	// case ctx.String(assetMetaFilePathName) != "":
+	// 	metaPath := tapcfg.CleanAndExpandPath(
+	// 		ctx.String(assetMetaFilePathName),
+	// 	)
+	// 	metaFileBytes, err := os.ReadFile(metaPath)
+	// 	if err != nil {
+	// 		return fmt.Errorf("unable to read meta file: %w", err)
+	// 	}
 
-		assetMeta = &taprpc.AssetMeta{
-			Data: metaFileBytes,
-			Type: taprpc.AssetMetaType(ctx.Int(assetMetaTypeName)),
-		}
-	}
+	// 	assetMeta = &taprpc.AssetMeta{
+	// 		Data: metaFileBytes,
+	// 		Type: taprpc.AssetMetaType(ctx.Int(assetMetaTypeName)),
+	// 	}
+	// }
 
 	ctxc := getContext()
-	client, cleanUp := getMintClient(ctx)
+	client, cleanUp := getZKClient(ctx)
 	defer cleanUp()
 
-	resp, err := client.MintAsset(ctxc, &mintrpc.MintAssetRequest{
-		Asset: &mintrpc.MintAsset{
-			AssetType:   parseAssetType(ctx),
-			Name:        ctx.String(assetTagName),
-			AssetMeta:   assetMeta,
-			Amount:      ctx.Uint64(assetSupplyName),
-			GroupKey:    groupKey,
-			GroupAnchor: ctx.String(assetGroupAnchorName),
+	resp, err := client.CreateProof(ctxc, &zkrpc.CreateProofRequest{
+		Zkproof: &zkrpc.ZkProof{Proof: zkProof,
+			Time: zkProofTime,
 		},
-		EnableEmission: ctx.Bool(assetEmissionName),
-		ShortResponse:  ctx.Bool(shortResponseName),
+		ShortResponse: ctx.Bool(shortResponseName),
 	})
 	if err != nil {
-		return fmt.Errorf("unable to mint asset: %w", err)
+		return fmt.Errorf("unable to create proof: %w", err)
 	}
 
 	printRespJSON(resp)
 	return nil
 }
 
-var finalizeBatchCommand = cli.Command{
+var zkfinalizeBatchCommand = cli.Command{
 	Name:        "finalize",
 	ShortName:   "f",
 	Usage:       "finalize a batch",
@@ -208,15 +154,15 @@ var finalizeBatchCommand = cli.Command{
 				"of data in case of large batches",
 		},
 	},
-	Action: finalizeBatch,
+	Action: zkfinalizeBatch,
 }
 
-func finalizeBatch(ctx *cli.Context) error {
+func zkfinalizeBatch(ctx *cli.Context) error {
 	ctxc := getContext()
-	client, cleanUp := getMintClient(ctx)
+	client, cleanUp := getZKClient(ctx)
 	defer cleanUp()
 
-	resp, err := client.FinalizeBatch(ctxc, &mintrpc.FinalizeBatchRequest{
+	resp, err := client.FinalizeBatch(ctxc, &zkrpc.FinalizeBatchRequest{
 		ShortResponse: ctx.Bool(shortResponseName),
 	})
 	if err != nil {
@@ -227,20 +173,20 @@ func finalizeBatch(ctx *cli.Context) error {
 	return nil
 }
 
-var cancelBatchCommand = cli.Command{
+var zkcancelBatchCommand = cli.Command{
 	Name:        "cancel",
 	ShortName:   "c",
 	Usage:       "cancel a batch",
 	Description: "Attempt to cancel a pending batch.",
-	Action:      cancelBatch,
+	Action:      zkcancelBatch,
 }
 
-func cancelBatch(ctx *cli.Context) error {
+func zkcancelBatch(ctx *cli.Context) error {
 	ctxc := getContext()
-	client, cleanUp := getMintClient(ctx)
+	client, cleanUp := getZKClient(ctx)
 	defer cleanUp()
 
-	resp, err := client.CancelBatch(ctxc, &mintrpc.CancelBatchRequest{})
+	resp, err := client.CancelBatch(ctxc, &zkrpc.CancelBatchRequest{})
 	if err != nil {
 		return fmt.Errorf("unable to cancel batch: %w", err)
 	}
@@ -249,7 +195,7 @@ func cancelBatch(ctx *cli.Context) error {
 	return nil
 }
 
-var listBatchesCommand = cli.Command{
+var zklistBatchesCommand = cli.Command{
 	Name:        "batches",
 	ShortName:   "b",
 	Usage:       "list all batches",
@@ -263,9 +209,9 @@ var listBatchesCommand = cli.Command{
 	Action: listBatches,
 }
 
-func listBatches(ctx *cli.Context) error {
+func zklistBatches(ctx *cli.Context) error {
 	ctxc := getContext()
-	client, cleanUp := getMintClient(ctx)
+	client, cleanUp := getZKClient(ctx)
 	defer cleanUp()
 
 	var (
@@ -280,8 +226,8 @@ func listBatches(ctx *cli.Context) error {
 		}
 	}
 
-	resp, err := client.ListBatches(ctxc, &mintrpc.ListBatchRequest{
-		Filter: &mintrpc.ListBatchRequest_BatchKey{
+	resp, err := client.ListBatches(ctxc, &zkrpc.ListBatchRequest{
+		Filter: &zkrpc.ListBatchRequest_BatchKey{
 			BatchKey: batchKey,
 		},
 	})
@@ -293,285 +239,285 @@ func listBatches(ctx *cli.Context) error {
 	return nil
 }
 
-var listAssetsCommand = cli.Command{
-	Name:        "list",
-	ShortName:   "l",
-	Usage:       "list all assets",
-	Description: "list all pending and mined assets",
-	Flags: []cli.Flag{
-		cli.BoolFlag{
-			Name:  assetShowWitnessName,
-			Usage: "include the asset's witness data",
-		},
-		cli.BoolFlag{
-			Name:  assetShowSpentName,
-			Usage: "include fully spent assets in the list",
-		},
-	},
-	Action: listAssets,
-}
+// var zklistAssetsCommand = cli.Command{
+// 	Name:        "list",
+// 	ShortName:   "l",
+// 	Usage:       "list all proofs",
+// 	Description: "list all pending and created proofs",
+// 	Flags: []cli.Flag{
+// 		cli.BoolFlag{
+// 			Name:  assetShowWitnessName,
+// 			Usage: "include the prrofs witness data",
+// 		},
+// 		cli.BoolFlag{
+// 			Name:  assetShowSpentName,
+// 			Usage: "include fully crreated proofs in the list",
+// 		},
+// 	},
+// 	Action: zklistAssets,
+// }
 
-func listAssets(ctx *cli.Context) error {
-	ctxc := getContext()
-	client, cleanUp := getClient(ctx)
-	defer cleanUp()
+// func zklistAssets(ctx *cli.Context) error {
+// 	ctxc := getContext()
+// 	client, cleanUp := getClient(ctx)
+// 	defer cleanUp()
 
-	// TODO(roasbeef): need to reverse txid
+// 	// TODO(roasbeef): need to reverse txid
 
-	resp, err := client.ListAssets(ctxc, &taprpc.ListAssetRequest{
-		WithWitness:  ctx.Bool(assetShowWitnessName),
-		IncludeSpent: ctx.Bool(assetShowSpentName),
-	})
-	if err != nil {
-		return fmt.Errorf("unable to list assets: %w", err)
-	}
-	printRespJSON(resp)
-	return nil
-}
+// 	resp, err := client.ListAssets(ctxc, &taprpc.ListAssetRequest{
+// 		WithWitness:  ctx.Bool(assetShowWitnessName),
+// 		IncludeSpent: ctx.Bool(assetShowSpentName),
+// 	})
+// 	if err != nil {
+// 		return fmt.Errorf("unable to list assets: %w", err)
+// 	}
+// 	printRespJSON(resp)
+// 	return nil
+// }
 
-var listUtxosCommand = cli.Command{
-	Name:        "utxos",
-	ShortName:   "u",
-	Usage:       "list all utxos",
-	Description: "list all utxos managing assets",
-	Action:      listUtxos,
-}
+// var listUtxosCommand = cli.Command{
+// 	Name:        "utxos",
+// 	ShortName:   "u",
+// 	Usage:       "list all utxos",
+// 	Description: "list all utxos managing assets",
+// 	Action:      listUtxos,
+// }
 
-func listUtxos(ctx *cli.Context) error {
-	ctxc := getContext()
-	client, cleanUp := getClient(ctx)
-	defer cleanUp()
+// func listUtxos(ctx *cli.Context) error {
+// 	ctxc := getContext()
+// 	client, cleanUp := getClient(ctx)
+// 	defer cleanUp()
 
-	resp, err := client.ListUtxos(ctxc, &taprpc.ListUtxosRequest{})
-	if err != nil {
-		return fmt.Errorf("unable to list utxos: %w", err)
-	}
-	printRespJSON(resp)
-	return nil
-}
+// 	resp, err := client.ListUtxos(ctxc, &taprpc.ListUtxosRequest{})
+// 	if err != nil {
+// 		return fmt.Errorf("unable to list utxos: %w", err)
+// 	}
+// 	printRespJSON(resp)
+// 	return nil
+// }
 
-var listGroupsCommand = cli.Command{
-	Name:        "groups",
-	ShortName:   "g",
-	Usage:       "list all asset groups",
-	Description: "list all asset groups known to the daemon",
-	Action:      listGroups,
-}
+// var listGroupsCommand = cli.Command{
+// 	Name:        "groups",
+// 	ShortName:   "g",
+// 	Usage:       "list all asset groups",
+// 	Description: "list all asset groups known to the daemon",
+// 	Action:      listGroups,
+// }
 
-func listGroups(ctx *cli.Context) error {
-	ctxc := getContext()
-	client, cleanUp := getClient(ctx)
-	defer cleanUp()
+// func listGroups(ctx *cli.Context) error {
+// 	ctxc := getContext()
+// 	client, cleanUp := getClient(ctx)
+// 	defer cleanUp()
 
-	resp, err := client.ListGroups(ctxc, &taprpc.ListGroupsRequest{})
-	if err != nil {
-		return fmt.Errorf("unable to list asset groups: %w", err)
-	}
-	printRespJSON(resp)
-	return nil
-}
+// 	resp, err := client.ListGroups(ctxc, &taprpc.ListGroupsRequest{})
+// 	if err != nil {
+// 		return fmt.Errorf("unable to list asset groups: %w", err)
+// 	}
+// 	printRespJSON(resp)
+// 	return nil
+// }
 
-var listAssetBalancesCommand = cli.Command{
-	Name:        "balance",
-	ShortName:   "b",
-	Usage:       "list asset balances",
-	Description: "list balances for all assets or a selected asset",
-	Action:      listAssetBalances,
-	Flags: []cli.Flag{
-		cli.BoolFlag{
-			Name:  groupByGroupName,
-			Usage: "Group asset balances by group key",
-		},
-		cli.StringFlag{
-			Name: assetIDName,
-			Usage: "A specific asset ID to run the balance query " +
-				"against",
-		},
-		cli.StringFlag{
-			Name: groupKeyName,
-			Usage: "A specific asset group key to run the " +
-				"balance query against. Must be used " +
-				"together with --by_group",
-		},
-	},
-}
+// var listAssetBalancesCommand = cli.Command{
+// 	Name:        "balance",
+// 	ShortName:   "b",
+// 	Usage:       "list asset balances",
+// 	Description: "list balances for all assets or a selected asset",
+// 	Action:      listAssetBalances,
+// 	Flags: []cli.Flag{
+// 		cli.BoolFlag{
+// 			Name:  groupByGroupName,
+// 			Usage: "Group asset balances by group key",
+// 		},
+// 		cli.StringFlag{
+// 			Name: assetIDName,
+// 			Usage: "A specific asset ID to run the balance query " +
+// 				"against",
+// 		},
+// 		cli.StringFlag{
+// 			Name: groupKeyName,
+// 			Usage: "A specific asset group key to run the " +
+// 				"balance query against. Must be used " +
+// 				"together with --by_group",
+// 		},
+// 	},
+// }
 
-func listAssetBalances(ctx *cli.Context) error {
-	ctxc := getContext()
-	client, cleanUp := getClient(ctx)
-	defer cleanUp()
+// func listAssetBalances(ctx *cli.Context) error {
+// 	ctxc := getContext()
+// 	client, cleanUp := getClient(ctx)
+// 	defer cleanUp()
 
-	var err error
+// 	var err error
 
-	req := &taprpc.ListBalancesRequest{}
+// 	req := &taprpc.ListBalancesRequest{}
 
-	if !ctx.Bool(groupByGroupName) {
-		req.GroupBy = &taprpc.ListBalancesRequest_AssetId{
-			AssetId: true,
-		}
+// 	if !ctx.Bool(groupByGroupName) {
+// 		req.GroupBy = &taprpc.ListBalancesRequest_AssetId{
+// 			AssetId: true,
+// 		}
 
-		assetIDHexStr := ctx.String(assetIDName)
-		if len(assetIDHexStr) != 0 {
-			req.AssetFilter, err = hex.DecodeString(assetIDHexStr)
-			if err != nil {
-				return fmt.Errorf("invalid asset ID")
-			}
+// 		assetIDHexStr := ctx.String(assetIDName)
+// 		if len(assetIDHexStr) != 0 {
+// 			req.AssetFilter, err = hex.DecodeString(assetIDHexStr)
+// 			if err != nil {
+// 				return fmt.Errorf("invalid asset ID")
+// 			}
 
-			if len(req.AssetFilter) != 32 {
-				return fmt.Errorf("invalid asset ID length")
-			}
-		}
-	} else {
-		req.GroupBy = &taprpc.ListBalancesRequest_GroupKey{
-			GroupKey: true,
-		}
+// 			if len(req.AssetFilter) != 32 {
+// 				return fmt.Errorf("invalid asset ID length")
+// 			}
+// 		}
+// 	} else {
+// 		req.GroupBy = &taprpc.ListBalancesRequest_GroupKey{
+// 			GroupKey: true,
+// 		}
 
-		assetGroupKeyHexStr := ctx.String(groupKeyName)
-		req.GroupKeyFilter, err = hex.DecodeString(assetGroupKeyHexStr)
-		if err != nil {
-			return fmt.Errorf("invalid group key")
-		}
-	}
+// 		assetGroupKeyHexStr := ctx.String(groupKeyName)
+// 		req.GroupKeyFilter, err = hex.DecodeString(assetGroupKeyHexStr)
+// 		if err != nil {
+// 			return fmt.Errorf("invalid group key")
+// 		}
+// 	}
 
-	resp, err := client.ListBalances(ctxc, req)
-	if err != nil {
-		return fmt.Errorf("unable to list asset balances: %w", err)
-	}
+// 	resp, err := client.ListBalances(ctxc, req)
+// 	if err != nil {
+// 		return fmt.Errorf("unable to list asset balances: %w", err)
+// 	}
 
-	printRespJSON(resp)
-	return nil
-}
+// 	printRespJSON(resp)
+// 	return nil
+// }
 
-var sendAssetsCommand = cli.Command{
-	Name:        "send",
-	ShortName:   "s",
-	Usage:       "send an asset",
-	Description: "send asset w/ a taproot asset addr",
-	Flags: []cli.Flag{
-		cli.StringSliceFlag{
-			Name: addrName,
-			Usage: "addr to send to; can be specified multiple " +
-				"times to send to multiple addresses at once",
-		},
-		// TODO(roasbeef): add arg for file name to write sender proof
-		// blob
-	},
-	Action: sendAssets,
-}
+// var sendAssetsCommand = cli.Command{
+// 	Name:        "send",
+// 	ShortName:   "s",
+// 	Usage:       "send an asset",
+// 	Description: "send asset w/ a taproot asset addr",
+// 	Flags: []cli.Flag{
+// 		cli.StringSliceFlag{
+// 			Name: addrName,
+// 			Usage: "addr to send to; can be specified multiple " +
+// 				"times to send to multiple addresses at once",
+// 		},
+// 		// TODO(roasbeef): add arg for file name to write sender proof
+// 		// blob
+// 	},
+// 	Action: sendAssets,
+// }
 
-func sendAssets(ctx *cli.Context) error {
-	addrs := ctx.StringSlice(addrName)
-	if ctx.NArg() != 0 || ctx.NumFlags() == 0 || len(addrs) == 0 {
-		return cli.ShowSubcommandHelp(ctx)
-	}
+// func sendAssets(ctx *cli.Context) error {
+// 	addrs := ctx.StringSlice(addrName)
+// 	if ctx.NArg() != 0 || ctx.NumFlags() == 0 || len(addrs) == 0 {
+// 		return cli.ShowSubcommandHelp(ctx)
+// 	}
 
-	ctxc := getContext()
-	client, cleanUp := getClient(ctx)
-	defer cleanUp()
+// 	ctxc := getContext()
+// 	client, cleanUp := getClient(ctx)
+// 	defer cleanUp()
 
-	resp, err := client.SendAsset(ctxc, &taprpc.SendAssetRequest{
-		TapAddrs: addrs,
-	})
-	if err != nil {
-		return fmt.Errorf("unable to send assets: %w", err)
-	}
+// 	resp, err := client.SendAsset(ctxc, &taprpc.SendAssetRequest{
+// 		TapAddrs: addrs,
+// 	})
+// 	if err != nil {
+// 		return fmt.Errorf("unable to send assets: %w", err)
+// 	}
 
-	printRespJSON(resp)
-	return nil
-}
+// 	printRespJSON(resp)
+// 	return nil
+// }
 
-var listTransfersCommand = cli.Command{
-	Name:      "transfers",
-	ShortName: "t",
-	Usage:     "list asset transfers",
-	Description: "list outgoing transfers of all assets or a selected " +
-		"asset",
-	Action: listTransfers,
-	Flags: []cli.Flag{
-		cli.StringFlag{
-			Name: assetIDName,
-			Usage: "A specific asset ID to list outgoing " +
-				"transfers for",
-		},
-	},
-}
+// var listTransfersCommand = cli.Command{
+// 	Name:      "transfers",
+// 	ShortName: "t",
+// 	Usage:     "list asset transfers",
+// 	Description: "list outgoing transfers of all assets or a selected " +
+// 		"asset",
+// 	Action: listTransfers,
+// 	Flags: []cli.Flag{
+// 		cli.StringFlag{
+// 			Name: assetIDName,
+// 			Usage: "A specific asset ID to list outgoing " +
+// 				"transfers for",
+// 		},
+// 	},
+// }
 
-func listTransfers(ctx *cli.Context) error {
-	ctxc := getContext()
-	client, cleanUp := getClient(ctx)
-	defer cleanUp()
+// func listTransfers(ctx *cli.Context) error {
+// 	ctxc := getContext()
+// 	client, cleanUp := getClient(ctx)
+// 	defer cleanUp()
 
-	req := &taprpc.ListTransfersRequest{}
-	resp, err := client.ListTransfers(ctxc, req)
-	if err != nil {
-		return fmt.Errorf("unable to list asset transfers: %w", err)
-	}
+// 	req := &taprpc.ListTransfersRequest{}
+// 	resp, err := client.ListTransfers(ctxc, req)
+// 	if err != nil {
+// 		return fmt.Errorf("unable to list asset transfers: %w", err)
+// 	}
 
-	printRespJSON(resp)
-	return nil
-}
+// 	printRespJSON(resp)
+// 	return nil
+// }
 
-const (
-	metaName = "asset_meta"
-)
+// const (
+// 	metaName = "asset_meta"
+// )
 
-var fetchMetaCommand = cli.Command{
-	Name:  "meta",
-	Usage: "fetch asset meta",
-	Description: "fetch the meta bytes for an asset based on the " +
-		"asset_id or meta_hash",
-	Action: fetchMeta,
-	Flags: []cli.Flag{
-		cli.StringFlag{
-			Name:  assetIDName,
-			Usage: "asset_id to fetch meta for",
-		},
-		cli.StringFlag{
-			Name:  metaName,
-			Usage: "meta_hash to fetch meta for",
-		},
-	},
-}
+// var fetchMetaCommand = cli.Command{
+// 	Name:  "meta",
+// 	Usage: "fetch asset meta",
+// 	Description: "fetch the meta bytes for an asset based on the " +
+// 		"asset_id or meta_hash",
+// 	Action: fetchMeta,
+// 	Flags: []cli.Flag{
+// 		cli.StringFlag{
+// 			Name:  assetIDName,
+// 			Usage: "asset_id to fetch meta for",
+// 		},
+// 		cli.StringFlag{
+// 			Name:  metaName,
+// 			Usage: "meta_hash to fetch meta for",
+// 		},
+// 	},
+// }
 
-func fetchMeta(ctx *cli.Context) error {
-	switch {
-	case ctx.IsSet(metaName) && ctx.IsSet(assetIDName):
-		return fmt.Errorf("only the asset_id or meta_hash can be set")
+// func fetchMeta(ctx *cli.Context) error {
+// 	switch {
+// 	case ctx.IsSet(metaName) && ctx.IsSet(assetIDName):
+// 		return fmt.Errorf("only the asset_id or meta_hash can be set")
 
-	case !ctx.IsSet(assetIDName) && !ctx.IsSet(metaName):
-		return cli.ShowSubcommandHelp(ctx)
-	}
+// 	case !ctx.IsSet(assetIDName) && !ctx.IsSet(metaName):
+// 		return cli.ShowSubcommandHelp(ctx)
+// 	}
 
-	ctxc := getContext()
-	client, cleanUp := getClient(ctx)
-	defer cleanUp()
+// 	ctxc := getContext()
+// 	client, cleanUp := getClient(ctx)
+// 	defer cleanUp()
 
-	req := &taprpc.FetchAssetMetaRequest{}
-	if ctx.IsSet(assetIDName) {
-		assetIDHex, err := hex.DecodeString(ctx.String(assetIDName))
-		if err != nil {
-			return fmt.Errorf("invalid asset ID")
-		}
+// 	req := &taprpc.FetchAssetMetaRequest{}
+// 	if ctx.IsSet(assetIDName) {
+// 		assetIDHex, err := hex.DecodeString(ctx.String(assetIDName))
+// 		if err != nil {
+// 			return fmt.Errorf("invalid asset ID")
+// 		}
 
-		req.Asset = &taprpc.FetchAssetMetaRequest_AssetId{
-			AssetId: assetIDHex,
-		}
-	} else {
-		metaBytes, err := hex.DecodeString(ctx.String(metaName))
-		if err != nil {
-			return fmt.Errorf("invalid meta hash")
-		}
+// 		req.Asset = &taprpc.FetchAssetMetaRequest_AssetId{
+// 			AssetId: assetIDHex,
+// 		}
+// 	} else {
+// 		metaBytes, err := hex.DecodeString(ctx.String(metaName))
+// 		if err != nil {
+// 			return fmt.Errorf("invalid meta hash")
+// 		}
 
-		req.Asset = &taprpc.FetchAssetMetaRequest_MetaHash{
-			MetaHash: metaBytes,
-		}
-	}
+// 		req.Asset = &taprpc.FetchAssetMetaRequest_MetaHash{
+// 			MetaHash: metaBytes,
+// 		}
+// 	}
 
-	resp, err := client.FetchAssetMeta(ctxc, req)
-	if err != nil {
-		return fmt.Errorf("unable to fetch asset meta: %w", err)
-	}
+// 	resp, err := client.FetchAssetMeta(ctxc, req)
+// 	if err != nil {
+// 		return fmt.Errorf("unable to fetch asset meta: %w", err)
+// 	}
 
-	printRespJSON(resp)
-	return nil
-}
+// 	printRespJSON(resp)
+// 	return nil
+// }

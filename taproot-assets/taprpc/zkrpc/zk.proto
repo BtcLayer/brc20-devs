@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-import "taprootassets.proto";
+// import "taprootassets.proto";
 
-package mintrpc;
+package zkrpc;
 
-option go_package = "github.com/lightninglabs/taproot-assets/taprpc/mintrpc";
+option go_package = "github.com/lightninglabs/taproot-assets/taprpc/zkrpc";
 
 service ZK {
     /* tapcli: `zk create`
-    */
+     */
     rpc CreateProof (CreateProofRequest) returns (CreateProofResponse);
 
     /* tapcli: `zk create finalize`
@@ -29,11 +29,9 @@ service ZK {
 }
 
 message ZkProof {
-
     string proof = 1;
 
     string time = 2;
-
 }
 
 message CreateProofRequest {

@@ -37,6 +37,7 @@ import (
 	"github.com/lightninglabs/taproot-assets/taprpc/mintrpc"
 	"github.com/lightninglabs/taproot-assets/taprpc/tapdevrpc"
 	unirpc "github.com/lightninglabs/taproot-assets/taprpc/universerpc"
+	"github.com/lightninglabs/taproot-assets/taprpc/zkrpc"
 	"github.com/lightninglabs/taproot-assets/tapscript"
 	"github.com/lightninglabs/taproot-assets/universe"
 	"github.com/lightningnetwork/lnd/build"
@@ -77,6 +78,7 @@ type rpcServer struct {
 	taprpc.UnimplementedTaprootAssetsServer
 	wrpc.UnimplementedAssetWalletServer
 	mintrpc.UnimplementedMintServer
+	zkrpc.UnimplementedZKServer
 	unirpc.UnimplementedUniverseServer
 	tapdevrpc.UnimplementedTapDevServer
 

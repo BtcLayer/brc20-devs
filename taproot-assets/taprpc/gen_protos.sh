@@ -6,7 +6,7 @@ set -e
 function generate() {
   echo "Generating root gRPC server protos"
 
-  PROTOS="taprootassets.proto assetwalletrpc/assetwallet.proto mintrpc/mint.proto universerpc/universe.proto tapdevrpc/tapdev.proto"
+  PROTOS="taprootassets.proto assetwalletrpc/assetwallet.proto mintrpc/mint.proto universerpc/universe.proto tapdevrpc/tapdev.proto zkrpc/zk.proto"
 
   # For each of the sub-servers, we then generate their protos, but a restricted
   # set as they don't yet require REST proxies, or swagger docs.
@@ -48,7 +48,7 @@ function generate() {
     --custom_opt="$opts" \
     taprootassets.proto
 
-  PACKAGES="assetwalletrpc universerpc mintrpc"
+  PACKAGES="assetwalletrpc universerpc mintrpc zkrpc"
   for package in $PACKAGES; do
 
     opts="package_name=$package,manual_import=$manual_import,js_stubs=1"
@@ -67,14 +67,19 @@ function format() {
   find . -name "*.proto" -print0 | xargs -0 clang-format --style=file -i
 }
 
+
+
 # Compile and format the taprpc package.
-pushd taprpc
+pushd /data/home/Antier/taproot-assets/taprpc
 format
 generate
 popd
 
 if [[ "$COMPILE_MOBILE" == "1" ]]; then
   pushd mobile
+
+  \
+  
   ./gen_bindings.sh $FALAFEL_VERSION
   popd
 fi

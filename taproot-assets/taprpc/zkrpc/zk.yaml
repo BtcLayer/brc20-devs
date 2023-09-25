@@ -1,0 +1,19 @@
+type: google.api.Service
+config_version: 3
+
+http:
+  rules:
+    - selector: zkrpc.ZK.CreateProof
+      post: "/v1/taproot-assets/zk/create"
+      body: "*"
+
+    - selector: zkrpc.ZK.FinalizeBatch
+      post: "/v1/taproot-assets/zk/create/finalize"
+      body: "*"
+
+    - selector: zkrpc.ZK.CancelBatch
+      post: "/v1/taproot-assets/zk/create/cancel"
+      body: "*"
+
+    - selector: zkrpc.ZK.ListBatches
+      get: "/v1/taproot-assets/zk/create/batches/{batch_key}"
