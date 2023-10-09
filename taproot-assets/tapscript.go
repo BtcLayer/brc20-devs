@@ -7,6 +7,10 @@ import (
     "crypto/sha256"
 	"fmt"
 	"math/big"
+	"log"
+
+	"github.com/btcsuite/btcd/txscript"
+	"github.com/btcsuite/btcd/wire"
 )
 
 
@@ -20,8 +24,6 @@ func tapscript_gen() {
 
     fmt.Printf("Private Key: %x\nPublic_Key: %s\n", privKey.D, pubkeyHex)
 
-
-    //alice generates  the tweak  from the contract
 
     contract := "Alice agrees to pay 10BTC to bob"
 
@@ -41,6 +43,7 @@ func tapscript_gen() {
     q_key.D.Add(q_key.D, new(big.Int).SetBytes(t[:]))
 
     fmt.Printf("Tweaked private key: %x\nTweaked public key (X coordinate only): %x\n", q_key.D, Q_key.X)
+
 }
 
 

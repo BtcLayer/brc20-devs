@@ -60,7 +60,7 @@ func main() {
 	z := circuit.Add(y, y) // Example: z = 2x^2
 
 	// Define an output constraint
-	constraint := circuit.Eq(y, z) // Example: y = z
+	constraint := circuit.Eq(y, z) 
 
 	// Add the constraint to the circuit
 	circuit.AddConstraint(constraint)
