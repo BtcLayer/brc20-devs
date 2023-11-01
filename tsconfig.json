@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
+    "importHelpers": true,
     "module": "commonjs",
     "target": "es2017",
+    "outDir": "dist",
     "noImplicitAny": false,
-    "outDir": "./dist",
     "esModuleInterop": true,
     "sourceMap": true,
-    "declaration": true
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*"]
+  "include": ["./src/**/.ts"]
 }

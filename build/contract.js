@@ -15,7 +15,6 @@
       FuncType["addLiq"] = "addLiq";
       FuncType["swap"] = "swap";
       FuncType["removeLiq"] = "removeLiq";
-      FuncType["decreaseApproval"] = "decreaseApproval";
   })(FuncType || (FuncType = {}));
 
   function sortTickParams(_params) {
@@ -184,16 +183,11 @@
           }
           this.map = map;
       }
-      getAvaiableAssets(address) {
-          let set = new Set();
-          for (const assetType in this.map) {
-              for (const tick in this.map[assetType]) {
-                  if (bn(this.getBalance(address, tick, assetType)).gt("0")) {
-                      set.add(tick);
-                  }
-              }
+      traverseTick(assetType, cb) {
+          for (const tick in this.map[assetType]) {
+              const brc20 = this.map[assetType][tick];
+              cb(brc20);
           }
-          return Array.from(set);
       }
       tryCreate(tick) {
           for (let assetType in this.map) {
