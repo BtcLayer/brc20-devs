@@ -1,0 +1,77 @@
+AppImage binary for Electrum
+============================
+
+✓ _This binary should be reproducible, meaning you should be able to generate
+   binaries that match the official releases._
+
+This assumes an Ubuntu host, but it should not be too hard to adapt to another
+similar system. The host architecture should be x86_64 (amd64).
+The docker commands should be executed in the project's root folder.
+
+We currently only build a single AppImage, for x86_64 architecture.
+Help to adapt these scripts to build for (some flavor of) ARM would be welcome,
+see [issue #5159](https://github.com/spesmilo/electrum/issues/5159).
+
+0. clone code without `--recursive`
+    
+    ```
+    $ git clone https://github.com/qtumproject/qtum-electrum.git 
+    ```
+
+1. Install Docker
+
+    ```
+    $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    $ sudo apt-get update
+    $ sudo apt-get install -y docker-ce
+    ```
+
+2. Build image
+
+    ```
+    $ cd qtum-electrum
+    $ sudo docker build -t qtum-electrum-appimage-builder-img contrib/build-linux/appimage
+    ```
+
+3. Build binary
+
+    ```
+    $ sudo docker run -it \
+        --name qtum-electrum-appimage-builder-cont \
+        -v $PWD:/opt/electrum \
+        --rm \
+        --workdir /opt/electrum/contrib/build-linux/appimage \
+        qtum-electrum-appimage-builder-img \
+        ./build.sh
+    ```
+
+4. The generated binary is in `./dist`.
+
+
+## FAQ
+
+### How can I see what is included in the AppImage?
+Execute the binary as follows: `./Qtum-electrum*.AppImage --appimage-extract`
+
+### How to investigate diff between binaries if reproducibility fails?
+```
+cd dist/
+./electrum-*-x86_64.AppImage1 --appimage-extract
+mv squashfs-root/ squashfs-root1/
+./electrum-*-x86_64.AppImage2 --appimage-extract
+mv squashfs-root/ squashfs-root2/
+$(cd squashfs-root1; find -type f -exec sha256sum '{}' \; > ./../sha256sum1)
+$(cd squashfs-root2; find -type f -exec sha256sum '{}' \; > ./../sha256sum2)
+diff sha256sum1 sha256sum2 > d
+cat d
+```
+
+For file metadata, e.g. timestamps:
+```
+rsync -n -a -i --delete squashfs-root1/ squashfs-root2/
+```
+
+Useful binary comparison tools:
+- vbindiff
+- diffoscope

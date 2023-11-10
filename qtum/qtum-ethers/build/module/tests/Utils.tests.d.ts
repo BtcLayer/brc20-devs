@@ -1,0 +1,10 @@
+declare const expect: any;
+declare const QtumWallet: any;
+declare const QtumProvider: any;
+declare const recoverAddress: any, recoverAddressBtc: any, hashMessage: any, verifyMessage: any, verifyMessageBtc: any, verifyTypedData: any, verifyTypedDataBtc: any, splitSignatureRSV: any, splitSignatureVRS: any, swapSignatureRS: any;
+declare const _TypedDataEncoder: any;
+declare const provider: any;
+declare const arrayify: any;
+declare const keccak256: any;
+declare const compressedSigner: any;
+declare const uncompressedSigner: any;

@@ -1,0 +1,11 @@
+export const isStandard = (data) => typeof data.evm === 'object' &&
+    data.evm !== null &&
+    typeof data.evm.bytecode === 'object' &&
+    data.evm.bytecode !== null;
+export function hasByteCode(bytecode) {
+    if (typeof bytecode === 'object') {
+        return Object.entries(bytecode.object).length !== 0;
+    }
+    return Object.entries(bytecode).length !== 0;
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29udHJhY3RKU09OLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vLi4vc3JjL2xpYi9Db250cmFjdEpTT04udHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBWUEsTUFBTSxDQUFDLE1BQU0sVUFBVSxHQUFHLENBQUMsSUFBa0IsRUFBZ0MsRUFBRSxDQUMzRSxPQUFRLElBQVksQ0FBQyxHQUFHLEtBQUssUUFBUTtJQUNwQyxJQUFZLENBQUMsR0FBRyxLQUFLLElBQUk7SUFDMUIsT0FBUSxJQUFZLENBQUMsR0FBRyxDQUFDLFFBQVEsS0FBSyxRQUFRO0lBQzdDLElBQVksQ0FBQyxHQUFHLENBQUMsUUFBUSxLQUFLLElBQUksQ0FBQztBQUV4QyxNQUFNLFVBQVUsV0FBVyxDQUFDLFFBQWdDO0lBQ3hELElBQUksT0FBTyxRQUFRLEtBQUssUUFBUSxFQUFFO1FBQ2hDLE9BQU8sTUFBTSxDQUFDLE9BQU8sQ0FBQyxRQUFRLENBQUMsTUFBTSxDQUFDLENBQUMsTUFBTSxLQUFLLENBQUMsQ0FBQztLQUNyRDtJQUNELE9BQU8sTUFBTSxDQUFDLE9BQU8sQ0FBQyxRQUFRLENBQUMsQ0FBQyxNQUFNLEtBQUssQ0FBQyxDQUFDO0FBQ2pELENBQUMifQ==

@@ -1,0 +1,50 @@
+{
+  "s1.electrum.qtum.site": {
+    "pruning": "-",
+    "t": "50001",
+    "s": "50002",
+    "version": "1.4"
+  },
+  "s3.electrum.qtum.site": {
+    "pruning": "-",
+    "t": "50001",
+    "s": "50002",
+    "version": "1.4"
+  },
+  "s4.electrum.qtum.site": {
+    "pruning": "-",
+    "t": "50001",
+    "s": "50002",
+    "version": "1.4"
+  },
+  "s5.electrum.qtum.site": {
+    "pruning": "-",
+    "t": "50001",
+    "s": "50002",
+    "version": "1.4"
+  },
+  "s7.electrum.qtum.site": {
+    "pruning": "-",
+    "t": "50001",
+    "s": "50002",
+    "version": "1.4"
+  },
+  "s8.electrum.qtum.site": {
+    "pruning": "-",
+    "t": "50001",
+    "s": "50002",
+    "version": "1.4"
+  },
+  "s9.electrum.qtum.site": {
+    "pruning": "-",
+    "t": "50001",
+    "s": "50002",
+    "version": "1.4"
+  },
+  "s10.electrum.qtum.site": {
+    "pruning": "-",
+    "t": "50001",
+    "s": "50002",
+    "version": "1.4"
+  }
+}
