@@ -1,8 +1,0 @@
-*.tgz
-TODO.md
-.vscode
-yarn*
-.env
-src
-.qtum
-.cache

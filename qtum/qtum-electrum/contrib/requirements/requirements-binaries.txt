@@ -1,3 +1,0 @@
-PyQt5
-cryptography>=3.2
-pycryptodomex>=3.7
