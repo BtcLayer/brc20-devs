@@ -7,10 +7,7 @@ import (
     "crypto/sha256"
 	"fmt"
 	"math/big"
-	"log"
-
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
+	
 )
 
 

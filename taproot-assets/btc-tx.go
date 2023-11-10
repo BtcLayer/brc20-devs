@@ -63,7 +63,7 @@ func main() {
 
 	// Sign the transaction (not shown in this simplified example)
     txHash := tx.TxHash()
-	sigScript, err := txscript.SignatureScript(tx, 0, pkScript, txscript.SigHashAll, nil, nil)
+	sigScript, err := txscript.SignatureScript(tx, 0, pkScript, txscript.SigHashAll, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

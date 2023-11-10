@@ -28,25 +28,24 @@ func generateZkSnarkProof(secretData string) (*ZkSnarkProof, error) {
 		B: new(big.Int),
 		C: new(big.Int),
 	}
-	// Generate the proof...
 	return proof, nil
 }
 
-// Spend Bitcoin with zk-SNARK
-func spendWithZkSnark(scriptPubKey string, secretData string) error {
-	// Generate the zk-SNARK proof
-	proof, err := generateZkSnarkProof(secretData)
-	if err != nil {
-		return err
-	}
+// // Spend Bitcoin with zk-SNARK
+// func spendWithZkSnark(scriptPubKey string, secretData string) error {
+// 	// Generate the zk-SNARK proof
+// 	proof, err := generateZkSnarkProof(secretData)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// Create a Bitcoin transaction with the zk-SNARK proof
-	// Sign the transaction with your private key
-	// Broadcast the transaction to the Bitcoin network
+// 	// Create a Bitcoin transaction with the zk-SNARK proof
+// 	// Sign the transaction with your private key
+// 	// Broadcast the transaction to the Bitcoin network
 
-	fmt.Println("Transaction successfully created and broadcasted.")
-	return nil
-}
+// 	fmt.Println("Transaction successfully created and broadcasted.")
+// 	return nil
+// }
 
 func main() {
 	// Create a new zk-SNARK circuit
