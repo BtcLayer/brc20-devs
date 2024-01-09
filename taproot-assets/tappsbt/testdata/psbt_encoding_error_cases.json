@@ -1,8 +1,0 @@
-{
-  "error_test_cases": [
-    {
-      "packet": {},
-      "error": "missing chain params HRP"
-    }
-  ]
-}

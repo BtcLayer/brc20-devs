@@ -1,0 +1,34 @@
+{
+  "name": "browser-process",
+  "description": "Process in your browser!",
+  "version": "0.0.1",
+  "files": [ "dist" ],
+  "main": "dist/node_process.js",
+  "scripts": {
+    "prepublish": "tsc",
+    "start": "karma start",
+    "test": "karma start --single-run"
+  },
+  "homepage": "https://github.com/wjordan/browser-process",
+  "author": "John Vilk <jvilk@cs.umass.edu> (http://people.cs.umass.edu/~jvilk)",
+  "contributors": [ "Will Jordan <will.jordan@gmail.com>" ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wjordan/browser-process.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wjordan/browser-process/issues"
+  },
+  "devDependencies": {
+    "browserify": "^10.2.4",
+    "karma": "^0.12.36",
+    "karma-browserify": "^4.2.1",
+    "karma-mocha": "^0.1.10",
+    "karma-phantomjs-launcher": "^0.2.0",
+    "mocha": "^2.2.5",
+    "phantomjs": "^1.9.17",
+    "process": "^0.11.1",
+    "typescript": "^1.5.0-beta"
+  }
+}
