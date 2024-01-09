@@ -65,9 +65,10 @@
 .form-container {
   border-radius: 40px;
   color: #000;
-  height: 680px;
+  height: 100%;
   background-color: white;
-  width: 650px;
+  width: 100%;
+  padding: 30px;
   z-index: 1;
 }
 

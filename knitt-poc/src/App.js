@@ -1,5 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
+import Loader from './Loader';
 import { useState } from 'react';
 
 const bitcoinCore = require('bitcoin-core');
@@ -11,39 +12,47 @@ const ethers = require('ethers');
 
 // Configuration for connecting to your Bitcoin Core node
 const config = {
-  host: 'localhost',
-  port: 18443, // Adjust the port if necessary
+  host: '127.0.0.01:7000/http://127.0.0.1',
+  port: 18443,
   username: 'user',
   password: '123',
   network: 'regtest',
-  timeout: 30000, // Timeout in milliseconds
+  timeout: 30000, 
 };
+
+const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+// const signer = new ethers.Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
 
 // Create a Bitcoin Core client
 const client = new bitcoinCore(config);
 
 function App() {
 const [mnemonics,setMnemonics]=useState('')
-const [btcAmount,setBtcAmount]=useState(5)
+const [btcAmount,setBtcAmount]=useState('')
 const [btcAddress,setBtcAddress]=useState('')
 const [ethAddress,setEthAddress]=useState('')
 const [btcBalance,setbtcBalance]=useState('')
+const [ethBalance, setEthBalance]=useState('')
+const [ethAmount, setEthAmount]=useState('')
+const [txHash, setTxHash] = useState('');
+const [loader, setLoader] = useState(false);
 
 
 
 async function handleMnemonics(value){
 setMnemonics(value);
-
-// if(isvalidMnemoinc(value)){
-
   try {
     const btcAddr= getBtcAddressFromMnemonics(value);
     const ethAddr=getEthAddressFromMnemonics(value);
-    const btcBalance=await getBtcBalance(btcAddr)
+    const btcBalance=await getBtcBalance(btcAddr);
+    const ethBalance= await getEthBalance(ethAddr);
     console.log("balance: ", btcBalance);
     setBtcAddress(btcAddr)
     setEthAddress(ethAddr)
     setbtcBalance(btcBalance)
+    console.log("eth log:", ethBalance);
+    setEthBalance(ethBalance)
+
   } catch (err) {
     console.log("Error: ", err);
   }
@@ -57,6 +66,16 @@ async function getBtcBalance(address) {
   try {
     const balance = await client.getBalance();
     console.log(`Balance of ${address}: ${balance} BTC`);
+    return balance
+  } catch (error) {
+    console.error('Error:', error.message || error);
+    return null
+  }
+}
+async function getEthBalance(address) {
+  try {
+  const balance=await provider.getBalance(address)
+    
     return balance
   } catch (error) {
     console.error('Error:', error.message || error);
@@ -80,6 +99,34 @@ function getEthAddressFromMnemonics(mnemonic) {
 }
 
 
+// Create a simple transaction
+async function createTransaction() {
+  try {
+    
+    if(!btcAmount) {
+      alert("Amount is empty!");
+      return;
+    }
+    
+    setLoader(true);
+
+    // Unlock the wallet for the sender address (only needed if wallet is encrypted)
+    await client.walletPassphrase('Srikar', 60);
+
+    // Send bitcoins from sender to recipient
+    const recipientAddress = "bcrt1q8s30xzk44wczms6s5smm2aqvnqqqkc8ye504zt";
+    const transactionId = await client.sendToAddress(recipientAddress, btcAmount);
+
+    setTxHash(transactionId);
+    console.log(`Transaction sent. Transaction ID: ${transactionId}`);
+    await getBtcBalance();
+    setLoader(false)
+  } catch (error) {
+    console.error('Error:', error.message || error);
+    alert(error.message)
+    setLoader(false)
+  }
+}
 
 
 
@@ -96,12 +143,14 @@ function getEthAddressFromMnemonics(mnemonic) {
 
           <input onChange={(e)=>setBtcAmount(e.target.value)}  value={btcAmount} placeholder="Enter BTC amount" className='input-box'></input>
           <p>Eth Address: {ethAddress}</p>
-          <p>Eth Balance: 100ETH </p>
+          <p>wBTC Balance: {ethBalance && `${ethBalance.toString()} wBTC`}</p>
 
-          <p>You will get 2.0 wBTC</p>
-          <button className="swap-button">Swap</button>
+          <p>You will get: {btcAmount}</p>
+          <button className="swap-button" onClick={createTransaction} disabled={loader}  style={{cursor: "pointer"}}>Swap</button>
+          <p onClick={async () => {await navigator.clipboard.writeText(txHash); alert("Copied Tx Hash")}}>{txHash && `Transaction Hash: ${txHash}`}</p>
         </div>
       </div>
+      {loader && <Loader />}
     </div>
   );
 }
