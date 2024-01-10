@@ -19,6 +19,10 @@ contract WBTC is IERC20 {
         return true;
     }
 
+    function getBalance(address addr) view external returns (uint){
+        return balanceOf[addr];
+    }
+
     function approve(address spender, uint amount) external returns (bool) {
         allowance[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
@@ -47,10 +51,10 @@ contract WBTC is IERC20 {
         emit Burn(amount);
     }
 
-    function mintWrapped(address from,address to,uint amount) external returns(bool){
+    function mintWrapped(address to,uint amount) external returns(bool){
         require(amount>0,"E1");
         balanceOf[to]+=amount;
-        emit MintWrappedStreak(from, to, amount);
+        emit MintWrappedStreak(to, amount);
         return true;
     }
 
