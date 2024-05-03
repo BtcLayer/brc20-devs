@@ -1,220 +1,96 @@
-# OPI - Open Protocol Indexer
+# brc20-swap api
 
-Open Protocol Indexer, OPI, is the **best-in-slot open-source indexing client** for **meta-protocols** on Bitcoin.
-OPI uses a fork of **ord 0.14.0** with minimal changes to maintain compatibility with base layer rules. Also, OPI is built with **modularity** in mind. The main indexer indexes all text/json inscriptions and modules can extend it with different meta-protocols.
-All modules in OPI have been built with **reorg protection**.
+This project provides APIs related to brc20-swap, which serve as the backend interfaces for https://unisat.io/swap.
 
-Currently OPI has modules for **BRC-20**, **Bitmap** and **SNS**, we'll add new modules over time. Pull Requests are welcomed for other meta-protocols.
+With the private key of the sequencer, interactive operations can be conducted for aggregation and chaining.
 
-## Main Meta-Protocol Indexer
+Otherwise, the on-chain data can be viewed in a read-only mode.
 
-**Meta-Protocol indexer** sits in the core of OPI. It indexes **all json/text inscriptions** and their **first 2 transfers**.
-Transfer limit can be changed via `INDEX_TX_LIMIT` variable in ord fork. This limit has been added since there are some UTXO's with a lot of inscription content and their movement floods transfers tables. Also, base indexing of most protocols only needs the first two transfers. BRC-20 becomes invalid after 2 hops, bitmap and SNS validity is calculated at inscription time.
+## Usage
 
-## BRC-20 Indexer / API
+To use the brc20-swap project, follow these steps:
 
-**BRC-20 Indexer** is the first module of OPI. It follows the official protocol rules hosted [here](https://layer1.gitbook.io/layer1-foundation/protocols/brc-20/indexing). BRC-20 Indexer saves all historical balance changes and all BRC-20 events.
+1. Clone the repository:
 
-In addition to indexing all events, it also calculates a block hash and cumulative hash of all events for easier db comparison. Here's the pseudocode for hash calculation:
-```python
-## Calculation starts at block 767430 which is the first inscription block
+   ```
+   git clone https://github.com/brc20-devs/brc20-swap-api.git
+   ```
 
-EVENT_SEPARATOR = '|'
-## max_supply, limit_per_mint, amount decimal count is the same as ticker's decimals (no trailing dot if decimals is 0)
-## ticker_lowercase = lower(ticker)
-## ticker_original is the ticker on inscription
-for event in block_events:
-  if event is 'deploy-inscribe':
-    block_str += 'deploy-inscribe;<inscr_id>;<deployer_pkscript>;<ticker_lowercase>;<ticker_original>;<max_supply>;<decimals>;<limit_per_mint>;<is_self_mint("true" or "false")>' + EVENT_SEPARATOR
-  if event is 'mint-inscribe':
-    block_str += 'mint-inscribe;<inscr_id>;<minter_pkscript>;<ticker_lowercase>;<ticker_original>;<amount>;<parent_id("" if null)>' + EVENT_SEPARATOR
-  if event is 'transfer-inscribe':
-    block_str += 'transfer-inscribe;<inscr_id>;<source_pkscript>;<ticker_lowercase>;<ticker_original>;<amount>' + EVENT_SEPARATOR
-  if event is 'transfer-transfer':
-    ## if sent as fee, sent_pkscript is empty
-    block_str += 'transfer-transfer;<inscr_id>;<source_pkscript>;<sent_pkscript>;<ticker_lowercase>;<ticker_original>;<amount>' + EVENT_SEPARATOR
+2. Install the project dependencies:
 
-if block_str.last is EVENT_SEPARATOR: block_str.remove_last()
-block_hash = sha256_hex(block_str)
-## for first block last_cumulative_hash is empty
-cumulative_hash = sha256_hex(last_cumulative_hash + block_hash)
-```
+   ```
+   yarn
+   ```
 
-There is an optional block event hash reporting system pointed at https://api.opi.network/report_block. If you want to exclude your node from this, just change `REPORT_TO_INDEXER` variable in `brc20_index/.env`.
-Also change `REPORT_NAME` to differentiate your node from others.
+3. Copy the `config.json.example` file and rename it to `config.json`:
 
-**BRC-20 API** exposes activity on block (block events), balance of a wallet at the start of a given height, current balance of a wallet, block hash and cumulative hash at a given block and hash of all current balances.
+   ```
+   cp conf/config.json.example conf/config.json
+   ```
 
-# BRC-20 Swap Indexer
+4. Configure the OpenAPI API key by updating the `config.json` file with your API key.
+   For example:
 
-**BRC-20 Swap Indexer** is the a module of OPI. BRC-20 Swap Indexer saves all historical balance changes and all BRC-20 events.
+   ```
+   "openApi": {
+      "url": "https://open-api.unisat.io",
+      "apiKey": "YOUR_API_KEY"
+    },
+   ```
 
-**BRC-20 API** exposes activity on block (block events), balance of a wallet at the start of a given height, current balance of a wallet, block hash and cumulative hash at a given block and hash of all current balances.
+   Replace `YOUR_API_KEY` with your actual API key.
+   Note: If you don't have an API key, you can obtain one by signing up on the OpenAPI website: https://developer.unisat.io
 
-The following diagram illustrates the architecture and data flow of the BRC-20 Swap Indexer
-<img src="https://github.com/brc20-devs/brc20-swap-indexer/assets/3053743/e48e394f-579f-41ac-a06a-4a77a40b811f" width="512">
+5. Configure the MongoDB connection by updating the `config.json` file with your MongoDB connection details.
+   For example:
 
-## Bitmap Indexer / API
+   ```
+   {
+     "mongoUrl": "mongodb://127.0.0.1:27017/"
+   }
+   ```
 
-**Bitmap Indexer** is the second module of OPI. It follows the official protocol rules hosted [here](https://gitbook.bitmap.land/ruleset/district-ruleset). Bitmap Indexer saves all bitmap-number inscription-id pairs.
+   Make sure you have MongoDB installed and running on your machine.
 
-In addition to indexing all pairs, it also calculates a block hash and cumulative hash of all events for easier db comparison. Here's the pseudocode for hash calculation:
+   Note: If you don't have MongoDB installed, you can download it from the official MongoDB website: https://www.mongodb.com/download-center/community
 
-```python
-## Calculation starts at block 767430 which is the first inscription block
+   If you already have MongoDB installed, you can skip this step.
 
-EVENT_SEPARATOR = '|'
-for bitmap in new_bitmaps_in_block:
-  block_str += 'inscribe;<inscr_id>;<bitmap_number>' + EVENT_SEPARATOR
+6. Run the following command to initialize MongoDB:
 
-if block_str.last is EVENT_SEPARATOR: block_str.remove_last()
-block_hash = sha256_hex(block_str)
-## for first block last_cumulative_hash is empty
-cumulative_hash = sha256_hex(last_cumulative_hash + block_hash)
-```
+   ```
+   yarn prepare-db
+   ```
 
-**Bitmap API** exposes block hash and cumulative hash at a given block, hash of all bitmaps and inscription_id of a given bitmap.
+7. Start the development server:
 
-## SNS Indexer / API
+   ```
+   yarn start-dev
+   ```
 
-**SNS Indexer** is the third module of OPI. It follows the official protocol rules hosted [here](https://docs.satsnames.org/sats-names/sns-spec/index-names). SNS Indexer saves all name, domain, inscription-id and namespace, inscription-id tuples.
+8. Open your web browser and navigate to `http://localhost:3000/documentation/static/index.html` to access the application.
 
-In addition to indexing all tuples, it also calculates a block hash and cumulative hash of all events for easier db comparison. Here's the pseudocode for hash calculation:
+## Build a new brc20-swap module instance
 
-```python
-## Calculation starts at block 767430 which is the first inscription block
+To build a new brc20-swap module instance, follow these steps:
 
-EVENT_SEPARATOR = '|'
-for event in new_events_in_block:
-  if event is 'name-registration':
-    ## name is the full name, domain is the part afler dot
-    block_str += 'register;<inscr_id>;<name>;<domain>' + EVENT_SEPARATOR
-  elif event is 'namespace-registration':
-    block_str += 'ns_register;<inscr_id>;<namespace>' + EVENT_SEPARATOR
+1. Refer to the `script/deploy-on-testnet-example.ts` file for an example of how to deploy a new module and contract.
+2. Once you have the new module and contract, update the corresponding configuration in the `config.json` file.
 
-if block_str.last is EVENT_SEPARATOR: block_str.remove_last()
-block_hash = sha256_hex(block_str)
-## for first block last_cumulative_hash is empty
-cumulative_hash = sha256_hex(last_cumulative_hash + block_hash)
-```
+## Contributing
 
-**SNS API** exposes block hash and cumulative hash at a given block, hash of all registered names, id number and domain of a given name, id number and name tuples of a domain, and all registered namespaces endpoints.
+If you would like to contribute to this project, please follow these guidelines:
 
-# Setup
+1. Fork the repository on GitHub.
 
-For detailed installation guides:
-- Ubuntu: [installation guide](INSTALL.ubuntu.md)
-- Windows: [installation guide](INSTALL.windows.md)
+2. Create a new branch for your feature or bug fix.
 
-OPI uses PostgreSQL as DB. Before running the indexer, setup a PostgreSQL DB (all modules can write into different databases as well as use a single database).
+3. Make your changes and commit them with descriptive messages.
 
-**Build ord:**
-```bash
-cd ord; cargo build --release;
-```
+4. Push your branch to your forked repository.
 
-**Install node modules**
-```bash
-cd modules/main_index; npm install;
-cd ../brc20_api; npm install;
-cd ../bitmap_api; npm install;
-```
-*Optional:*
-Remove the following from `modules/main_index/node_modules/bitcoinjs-lib/src/payments/p2tr.js`
-```js
-if (pubkey && pubkey.length) {
-  if (!(0, ecc_lib_1.getEccLib)().isXOnlyPoint(pubkey))
-    throw new TypeError('Invalid pubkey for p2tr');
-}
-```
-Otherwise, it cannot decode some addresses such as `512057cd4cfa03f27f7b18c2fe45fe2c2e0f7b5ccb034af4dec098977c28562be7a2`
+5. Submit a pull request to the main repository.
 
-**Install python libraries**
-```bash
-pip3 install python-dotenv;
-pip3 install psycopg2-binary;
-python3 -m pip install json5 stdiomask;
-```
+## License
 
-**Setup .env files and DBs**
-
-Run `reset_init.py` in each module folder (preferrably start from main_index) to initialise .env file, databases and set other necessary files.
-
-# (Optional) Restore from an online backup for faster initial sync
-
-1) Install dependencies: (pbzip2 is optional but greatly impoves decompress speed)
-
-```bash
-sudo apt update
-sudo apt install postgresql-client-common
-sudo apt install postgresql-client-14
-sudo apt install pbzip2
-
-python3 -m pip install boto3
-python3 -m pip install tqdm
-```
-
-2) Run `restore.py`
-
-```bash
-cd modules/;
-python3 restore.py;
-```
-
-# Run
-
-**Main Meta-Protocol Indexer**
-```bash
-cd modules/main_index;
-node index.js;
-```
-
-**BRC-20 Indexer**
-```bash
-cd modules/brc20_index;
-python3 brc20_index.py;
-```
-
-**BRC-20 API**
-```bash
-cd modules/brc20_api;
-node api.js;
-```
-
-**BRC-20 swap Indexer**
-```bash
-cd modules/brc20_swap_index;
-docker-compose up -d
-```
-
-**Bitmap Indexer**
-```bash
-cd modules/bitmap_index;
-python3 bitmap_index.py;
-```
-
-**Bitmap API**
-```bash
-cd modules/bitmap_api;
-node api.js;
-```
-
-**SNS Indexer**
-```bash
-cd modules/sns_index;
-python3 sns_index.py;
-```
-
-**SNS API**
-```bash
-cd modules/sns_api;
-node api.js;
-```
-
-# Update
-
-- Stop all indexers and apis (preferably starting from main indexer but actually the order shouldn't matter)
-- Update the repo (`git pull`)
-- Recompile ord (`cd ord; cargo build --release;`)
-- Re-run all indexers and apis
-- If rebuild is needed, you can run `restore.py` for faster initial sync
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
